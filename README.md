@@ -23,7 +23,11 @@ Puis ouvrir :
 ### Scénario de présentation (5 min)
 
 1. Ouvrir `/docs` et montrer la liste des endpoints.
-2. **Auth** → `POST /v2/auth/token` avec `demo_client` / `demo_secret` → copier le JWT.
+2. **Auth** → `POST /v2/auth/token` avec le body JSON :
+   ```json
+   {"client_id":"demo_client","client_secret":"demo_secret","grant_type":"client_credentials"}
+   ```
+   → copier le JWT.
 3. Cliquer **Authorize** (cadenas) → coller `Bearer <token>`.
 4. **OCR Gemini** → `POST /v2/ocr/gemini` → uploader une photo de CNI/passeport.
 5. **Stats** → `GET /v2/stats` pour montrer le monitoring.
@@ -32,19 +36,27 @@ Puis ouvrir :
 
 ## Présentation à distance
 
-### Option A — Tunnel local (sans Docker, sans hébergeur)
+### Option A — Tunnel local (sans Docker, recommandé pour démo immédiate)
 
-Avec [ngrok](https://ngrok.com) ou [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) :
+Un seul terminal suffit :
+
+```bash
+cd backend
+chmod +x scripts/start-remote-demo.sh
+./scripts/start-remote-demo.sh
+```
+
+Le script affiche une URL publique du type `https://xxxx.trycloudflare.com/docs` — partagez-la à votre interlocuteur.
+
+Alternative manuelle (2 terminaux) :
 
 ```bash
 # Terminal 1
 cd backend && ./scripts/start-demo.sh
 
 # Terminal 2
-ngrok http 8000
+cloudflared tunnel --url http://localhost:8000
 ```
-
-Partagez l'URL `https://xxxx.ngrok.io/docs` à votre interlocuteur.
 
 ### Option B — Render.com (recommandé, URL publique permanente)
 
