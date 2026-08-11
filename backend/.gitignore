@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtualenv
+.venv/
+venv/
+.env/
+.env
+.env.*
+
+# Pytest
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Databases / local artifacts
+*.sqlite3
+*.db
+docuflow_dev.db
+
+# Models and large generated files
+/models/
+
+# Docker
+.env.local
+
+# Coverage
+htmlcov/
+.coverage
+
+# Misc
+*.log
+
+# Keep requirements and Dockerfile, but exclude build artifacts
+build/
+dist/
+*.egg-info/
