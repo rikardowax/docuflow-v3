@@ -1,11 +1,14 @@
 """DocuFlow v3.0 - Production FastAPI Application"""
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
@@ -155,6 +158,19 @@ if settings.METRICS_ENABLED:
 
 app.include_router(v2_router, prefix="/v2")
 
+_STATIC_DIR = Path(__file__).parent / "static"
+if _STATIC_DIR.is_dir():
+    app.mount("/app/static", StaticFiles(directory=_STATIC_DIR), name="app-static")
+
+
+@app.get("/app", include_in_schema=False)
+@app.get("/app/", include_in_schema=False)
+async def serve_app():
+    index = _STATIC_DIR / "index.html"
+    if not index.is_file():
+        return JSONResponse(status_code=404, content={"error": "App UI not found"})
+    return FileResponse(index)
+
 
 @app.get("/health", include_in_schema=False)
 async def health():
@@ -167,11 +183,14 @@ async def health():
 
 @app.get("/", include_in_schema=False)
 async def root():
+    if not settings.is_production and (_STATIC_DIR / "index.html").is_file():
+        return RedirectResponse(url="/app")
     return {
         "name": settings.APP_NAME,
         "version": settings.VERSION,
         "env": settings.ENV,
         "docs": _docs_url or "disabled in production",
+        "app": "/app" if (_STATIC_DIR / "index.html").is_file() else None,
     }
 
 

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocuFlow — Extraction documentaire</title>
+  <link rel="stylesheet" href="/app/static/app.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">DF</div>
+        <div>
+          <h1>DocuFlow</h1>
+          <p>v3.0 · Démo</p>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-tab="extract">Extraction</button>
+        <button class="nav-btn" data-tab="stats">Statistiques</button>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connexion…</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">Extraction</h2>
+          <p id="pageSubtitle">Extraction automatique de champs (CNI, passeport, factures…)</p>
+        </div>
+        <a class="api-link" href="/docs" target="_blank" rel="noopener">API Swagger ↗</a>
+      </header>
+
+      <section id="tab-extract" class="panel active">
+        <div class="grid-2">
+          <div class="card">
+            <h3>1. Document</h3>
+            <div class="dropzone" id="extractDropzone">
+              <input type="file" id="extractFile" accept="image/jpeg,image/png,image/webp,image/tiff" hidden />
+              <div class="dropzone-inner">
+                <p class="drop-title">Glissez une image ou cliquez</p>
+                <p class="drop-hint">JPEG, PNG, WEBP · max 20 Mo</p>
+              </div>
+              <img id="extractPreview" class="preview hidden" alt="Aperçu" />
+            </div>
+            <label class="field optional">
+              <span>Verso (optionnel)</span>
+              <input type="file" id="extractVerso" accept="image/jpeg,image/png,image/webp" />
+            </label>
+            <button class="btn primary" id="extractSubmit" disabled>Extraire les champs</button>
+          </div>
+          <div class="card results-card">
+            <h3>2. Résultats</h3>
+            <div id="extractResults" class="results empty">
+              <p>Uploadez un document pour voir les champs extraits.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-stats" class="panel">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card"><span class="stat-label">Documents traités</span><strong id="statTotal">—</strong></div>
+          <div class="stat-card"><span class="stat-label">Taux de succès</span><strong id="statSuccess">—</strong></div>
+          <div class="stat-card"><span class="stat-label">Temps moyen</span><strong id="statLatency">—</strong></div>
+          <div class="stat-card"><span class="stat-label">File d'attente</span><strong id="statQueue">—</strong></div>
+        </div>
+        <button class="btn secondary" id="statsRefresh">Actualiser</button>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app/static/app.js"></script>
+</body>
+</html>

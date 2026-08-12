@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: docuflow-v3
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: staging
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./docuflow_dev.db
+      - key: RATE_LIMIT_ENABLED
+        value: false
+      - key: GEMINI_API_KEY
+        sync: false

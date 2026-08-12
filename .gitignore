@@ -4,6 +4,8 @@
 !.env.example
 backend/.env
 backend/.env.*
+backend/.demo-url
+backend/.demo-api.log
 
 # Python
 __pycache__/

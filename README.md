@@ -1,86 +1,98 @@
-# DocuFlow v3 — Démo API
+# DocuFlow v3 — Démo extraction documentaire
 
-Plateforme d'extraction documentaire (OCR Gemini, biométrie, validation) — backend FastAPI.
+Backend FastAPI + interface web de démo (`/app`).
 
-## Démo rapide (sans Docker)
+## Démo locale (sans Docker)
 
 ```bash
 cd backend
 ./scripts/start-demo.sh
 ```
 
-Puis ouvrir :
-- **Swagger UI** : http://localhost:8000/docs
-- **Health check** : http://localhost:8000/health
+- **Application** : http://localhost:8000/app
+- **Swagger** : http://localhost:8000/docs
 
-### Identifiants de démo
+Identifiants : `demo_client` / `demo_secret`
 
-| Champ | Valeur |
-|-------|--------|
-| `client_id` | `demo_client` |
-| `client_secret` | `demo_secret` |
+> Clé API : renseigner `GEMINI_API_KEY` dans `backend/.env`  
+> (gratuit sur https://aistudio.google.com/apikey)
 
-### Scénario de présentation (5 min)
-
-1. Ouvrir `/docs` et montrer la liste des endpoints.
-2. **Auth** → `POST /v2/auth/token` avec le body JSON :
-   ```json
-   {"client_id":"demo_client","client_secret":"demo_secret","grant_type":"client_credentials"}
-   ```
-   → copier le JWT.
-3. Cliquer **Authorize** (cadenas) → coller `Bearer <token>`.
-4. **OCR Gemini** → `POST /v2/ocr/gemini` → uploader une photo de CNI/passeport.
-5. **Stats** → `GET /v2/stats` pour montrer le monitoring.
-
-> **Gemini OCR** : renseigner `GEMINI_API_KEY` dans `backend/.env` (clé gratuite sur https://aistudio.google.com/apikey).
-
-## Présentation à distance
-
-### Option A — Tunnel local (sans Docker, recommandé pour démo immédiate)
-
-Un seul terminal suffit :
+## Démo à distance (gratuit, PC allumé)
 
 ```bash
 cd backend
-chmod +x scripts/start-remote-demo.sh
 ./scripts/start-remote-demo.sh
 ```
 
-Le script affiche une URL publique du type `https://xxxx.trycloudflare.com/docs` — partagez-la à votre interlocuteur.
+Partagez le lien `/app` affiché (tunnel Cloudflare).
 
-Alternative manuelle (2 terminaux) :
+---
 
-```bash
-# Terminal 1
-cd backend && ./scripts/start-demo.sh
+## Déployer sur Render — GRATUIT
 
-# Terminal 2
-cloudflared tunnel --url http://localhost:8000
-```
+URL fixe du type `https://docuflow-v3.onrender.com/app` — **0 €**, sans Docker sur votre PC.
 
-### Option B — Render.com (recommandé, URL publique permanente)
+### Limites du plan free Render
 
-1. Poussez ce repo sur GitHub.
-2. Créez un compte sur [render.com](https://render.com) → **New Web Service**.
-3. Connectez le repo, choisissez **Docker**, répertoire `backend/`.
-4. Variables d'environnement :
-   - `ENV=staging`
-   - `GEMINI_API_KEY=<votre_clé>`
-   - `DATABASE_URL=sqlite+aiosqlite:///./docuflow_dev.db`
-   - `RATE_LIMIT_ENABLED=false`
-5. Déployez → URL publique du type `https://docuflow-xxxx.onrender.com/docs`.
+| | |
+|---|---|
+| Coût | **0 €** |
+| RAM | 512 Mo → on déploie **extraction seule** (sans PaddleOCR/biométrie) |
+| Endormissement | Après 15 min sans visite → réveil en ~30–60 s |
+| Disque | SQLite effacé à chaque redéploiement (OK pour démo) |
+
+### Étapes (10 min)
+
+1. **GitHub** — le code doit être sur GitHub  
+   Repo : https://github.com/rikardowax/docuflow-v3
+
+2. **Clé Gemini** — https://aistudio.google.com/apikey
+
+3. **Render** — https://render.com → créer un compte (gratuit)
+
+4. **New → Blueprint** (ou **Web Service**)
+   - Connecter le repo `docuflow-v3`
+   - Render détecte `render.yaml` à la racine
+   - Ou manuellement :
+     - **Root Directory** : `backend`
+     - **Runtime** : Docker
+     - **Dockerfile** : `Dockerfile.render`
+
+5. **Variables d'environnement** (obligatoire) :
+
+   | Variable | Valeur |
+   |----------|--------|
+   | `GEMINI_API_KEY` | votre clé Gemini |
+   | `ENV` | `staging` |
+   | `DATABASE_URL` | `sqlite+aiosqlite:///./docuflow_dev.db` |
+   | `RATE_LIMIT_ENABLED` | `false` |
+
+6. **Plan** : Free → **Create Web Service**
+
+7. Attendre le build (~5–10 min) → ouvrir :
+   - **App** : `https://VOTRE-SERVICE.onrender.com/app`
+   - **Health** : `https://VOTRE-SERVICE.onrender.com/health`
+
+### Avant une présentation
+
+Le service free s’endort. **1–2 min avant** l’appel, ouvrez `/app` ou `/health` dans le navigateur pour le réveiller.
+
+### Dépannage Render
+
+- **Build échoue (mémoire)** → vérifiez que c’est bien `Dockerfile.render` (pas le Dockerfile complet)
+- **Extraction échoue** → vérifiez `GEMINI_API_KEY` dans les env vars Render
+- **Page blanche** → allez sur `/app` (pas `/docs` pour la démo utilisateur)
+
+---
 
 ## Structure
 
 ```
 docuflow_v3/
-├── backend/          # API FastAPI
-│   ├── app/          # Code source
-│   ├── Dockerfile    # Pour Render / CI
-│   └── scripts/      # start-demo.sh
-└── .github/          # CI/CD
+├── backend/
+│   ├── app/static/       # Interface web (/app)
+│   ├── Dockerfile.render # Image légère pour Render
+│   └── requirements-render.txt
+├── render.yaml           # Config Render one-click
+└── README.md
 ```
-
-## Licence
-
-Projet interne — usage démo.

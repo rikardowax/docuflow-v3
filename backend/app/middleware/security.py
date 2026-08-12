@@ -16,10 +16,9 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# ── CSP policy — strict for an API backend ────────────────────────────
-# The frontend is served separately; this API never renders HTML pages.
-# default-src 'none' blocks everything; only explicit exceptions are allowed.
-_CSP = (
+# ── CSP policy ────────────────────────────────────────────────────────
+# Strict for API routes; relaxed for Swagger/ReDoc (needs CDN scripts/styles).
+_CSP_API = (
     "default-src 'none'; "
     "script-src 'none'; "
     "object-src 'none'; "
@@ -27,6 +26,26 @@ _CSP = (
     "base-uri 'none'; "
     "form-action 'none';"
 )
+
+_CSP_DOCS = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "img-src 'self' data: blob: https://fastapi.tiangolo.com; "
+    "connect-src 'self'; "
+    "frame-ancestors 'none'; "
+    "base-uri 'self';"
+)
+
+_DOCS_PATHS = frozenset({"/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect"})
+
+
+def _is_docs_path(path: str) -> bool:
+    return path in _DOCS_PATHS or path.startswith("/docs/")
+
+
+def _is_app_path(path: str) -> bool:
+    return path == "/app" or path.startswith("/app/")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -45,7 +64,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"]          = "1; mode=block"
         response.headers["Referrer-Policy"]            = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"]         = "camera=(), microphone=(), geolocation=()"
-        response.headers["Content-Security-Policy"]    = _CSP
+        response.headers["Content-Security-Policy"]    = (
+            _CSP_DOCS if (_is_docs_path(request.url.path) or _is_app_path(request.url.path))
+            else _CSP_API
+        )
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
 
